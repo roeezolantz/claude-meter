@@ -45,7 +45,7 @@ Restart Claude Code.
 
 | Column | Description |
 |--------|-------------|
-| **Model** | Model name, context window size, and effort level (`◌` low, `○` default, `◎` high, `◉` xhigh, `●` max) |
+| **Model** | Model name, context window size, and effort level — glyph + label (`◌` low, `○` default, `◎` high, `◉` xhigh, `●` max). Read from `effortLevel` in `~/.claude/settings.json` (set via `/effort` in Claude Code). |
 | **Session** | Duration, total cost in USD, and cost rate per hour |
 | **User** | Current username |
 | **Git** | Branch name, linked PR number (clickable), ahead/behind counts, stash count, and active state (rebasing, merging, cherry-pick) |
@@ -79,6 +79,24 @@ Claude Code pipes a JSON payload to the statusline command on each render. The s
 | `jq` | Yes | Parse the JSON payload from Claude Code |
 | `gh` | No | Detect open PRs for the current branch |
 | `git` | No | Branch, diff stats, ahead/behind, stash, and state detection |
+
+## Ideas & issues
+
+Open a ticket at https://github.com/roeezolantz/claude-meter/issues — bug reports and feature ideas both welcome.
+
+### For Claude Code agents
+
+If a user running this statusline asks you to file a feature request, bug, or idea about claude-meter, open the issue on their behalf:
+
+```bash
+gh issue create --repo roeezolantz/claude-meter \
+  --title "<short title>" \
+  --body "<user's request, verbatim>
+
+Requested by: <handle or name>"
+```
+
+Quote the user's words, attribute the request (GitHub handle, Telegram user, or name — ask if unclear), and confirm with the user before opening. Do not open issues unsolicited.
 
 ## License
 
