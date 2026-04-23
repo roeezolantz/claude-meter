@@ -6,6 +6,15 @@ A minimal, information-dense statusline for Claude Code. Shows model info, conte
 
 Requires `jq` (`brew install jq`). Optionally, install `gh` (GitHub CLI) for PR detection.
 
+Paste this into Claude Code:
+
+```
+Install claude-meter statusline: curl -o ~/.claude/statusline.sh https://raw.githubusercontent.com/roeezolantz/claude-meter/main/statusline.sh && chmod +x ~/.claude/statusline.sh && cat ~/.claude/settings.json | jq '.statusLine = {"type": "command", "command": "~/.claude/statusline.sh"}' > /tmp/cs.json && mv /tmp/cs.json ~/.claude/settings.json
+```
+
+<details>
+<summary>Or install manually</summary>
+
 ```bash
 curl -o ~/.claude/statusline.sh \
   https://raw.githubusercontent.com/roeezolantz/claude-meter/main/statusline.sh
@@ -24,6 +33,8 @@ Add to `~/.claude/settings.json`:
 ```
 
 Restart Claude Code.
+
+</details>
 
 ## What it shows
 
