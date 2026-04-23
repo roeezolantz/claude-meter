@@ -27,10 +27,8 @@ Restart Claude Code.
 
 ## What it shows
 
-```
-Opus 4.6 (1M) ○ │ ⏱ 12m  $0.45 ($2.25/hr)  │ roee       │ main PR #42 ↑2
-██████░░░░ 60%  │ 5h 40% 2h  7d 25% 4d       │ my-project │ clean
-```
+<img width="682" height="146" alt="image" src="https://github.com/user-attachments/assets/60148738-f8d1-4aab-a611-8ed8f1695c55" />
+
 
 ### Line 1 (left to right)
 
