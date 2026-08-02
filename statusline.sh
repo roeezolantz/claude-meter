@@ -74,7 +74,7 @@ QC=""; [[ "$CACHE_OK" == "1" ]] && QC="${_CD}/quota"
 
 # ── Parse stdin JSON ──
 HAS_RL=0
-IFS=$'\t' read -r MODEL DIR PCT CTX COST EFF HAS_RL U5 U7 R5 R7 DUR_MS < <(
+IFS=$'\t' read -r MODEL DIR PCT CTX COST EFF HAS_RL U5 U7 R5 R7 DUR_MS SID < <(
   jq -r --slurpfile cfg <(cat ~/.claude/settings.json 2>/dev/null || echo '{}') \
     '[(.model.display_name//"?"),(.workspace.project_dir//"."),
     (.context_window.used_percentage//0|floor),(.context_window.context_window_size//0),
@@ -85,7 +85,8 @@ IFS=$'\t' read -r MODEL DIR PCT CTX COST EFF HAS_RL U5 U7 R5 R7 DUR_MS < <(
     (.rate_limits.seven_day.used_percentage//null|if type=="number" then floor else "--" end),
     (.rate_limits.five_hour.resets_at//0),
     (.rate_limits.seven_day.resets_at//0),
-    (.cost.total_duration_ms//0|floor)]|@tsv' <<<"$input"
+    (.cost.total_duration_ms//0|floor),
+    (.session_id//"")]|@tsv' <<<"$input"
 )
 
 # ══════════════════════════════════════
@@ -265,10 +266,32 @@ else
 fi
 
 # ══════════════════════════════════════
+# COL 5: claude-restore REGISTRY / SESSION ID
+# ══════════════════════════════════════
+# Is this session tracked in the claude-restore registry (~/.claude-sessions)?
+# Column is skipped entirely when no registry exists (claude-restore not installed).
+_SESSIONS_DIR="${CLAUDE_SESSIONS_DIR:-$HOME/.claude-sessions}/active"
+HAS_COL5=0 COL5_TOP="" COL5_BOT=""
+if [ -n "$SID" ] && [ -d "$_SESSIONS_DIR" ]; then
+  HAS_COL5=1
+  if [ -f "${_SESSIONS_DIR}/${SID}.json" ]; then
+    COL5_TOP="${G}⟲ restorable${N}"
+  else
+    COL5_TOP="${Y}⟲ untracked${N}"
+  fi
+  COL5_BOT="${D}${SID:0:8}${N}"
+fi
+
+# ══════════════════════════════════════
 # OUTPUT — pad columns so │ separators align
 # ══════════════════════════════════════
 # Strip ANSI codes to measure visible width
-_vlen() { local s; s=$(printf '%s' "$1" | sed $'s/\033\\[[0-9;]*m//g'); printf '%s' "${#s}"; }
+# (also strips OSC 8 hyperlink wrappers, which carry no visible width)
+_vlen() {
+  local s
+  s=$(printf '%s' "$1" | sed -e $'s/\033\\]8;;[^\033]*\033\\\\//g' -e $'s/\033\\[[0-9;]*m//g')
+  printf '%s' "${#s}"
+}
 
 # Pad a string with trailing spaces to reach target visible width
 _pad() {
@@ -286,6 +309,12 @@ _pad() {
 _v1t=$(_vlen "$COL1_TOP"); _v1b=$(_vlen "$COL1_BOT"); ((_v1t>_v1b)) && W1=$_v1t || W1=$_v1b
 _v2t=$(_vlen "$COL2_TOP"); _v2b=$(_vlen "$COL2_BOT"); ((_v2t>_v2b)) && W2=$_v2t || W2=$_v2b
 _v3t=$(_vlen "$COL3_TOP"); _v3b=$(_vlen "$COL3_BOT"); ((_v3t>_v3b)) && W3=$_v3t || W3=$_v3b
+
+if ((HAS_COL5)); then
+  _v4t=$(_vlen "$COL4_TOP"); _v4b=$(_vlen "$COL4_BOT"); ((_v4t>_v4b)) && W4=$_v4t || W4=$_v4b
+  COL4_TOP="$(_pad "$COL4_TOP" "$W4")${S}${COL5_TOP}"
+  COL4_BOT="$(_pad "$COL4_BOT" "$W4")${S}${COL5_BOT}"
+fi
 
 printf '%s\n' "$(_pad "$COL1_TOP" "$W1")${S}$(_pad "$COL2_TOP" "$W2")${S}$(_pad "$COL3_TOP" "$W3")${S}${COL4_TOP}"
 printf '%s\n' "$(_pad "$COL1_BOT" "$W1")${S}$(_pad "$COL2_BOT" "$W2")${S}$(_pad "$COL3_BOT" "$W3")${S}${COL4_BOT}"

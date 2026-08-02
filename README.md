@@ -49,6 +49,7 @@ Restart Claude Code.
 | **Session** | Duration, total cost in USD, and cost rate per hour |
 | **User** | Current username |
 | **Git** | Branch name, linked PR number (clickable), ahead/behind counts, stash count, and active state (rebasing, merging, cherry-pick) |
+| **Restore** | Whether this session is tracked in the `claude-restore` registry — `⟲ restorable` (green) or `⟲ untracked` (yellow). Hidden entirely when the registry doesn't exist. |
 
 ### Line 2 (left to right)
 
@@ -58,6 +59,7 @@ Restart Claude Code.
 | **Rate limits** | 5-hour and 7-day usage percentages with color coding and reset countdowns |
 | **Directory** | Last two path components of the project directory |
 | **Changes** | File count, additions, and deletions — or "clean" if no uncommitted changes. Shows worktree name when inside a `.claude/worktrees/` directory |
+| **Session ID** | First 8 characters of the session ID — enough to pick the session out of `claude-restore --list` or `claude --resume` |
 
 ## Features
 
@@ -65,6 +67,7 @@ Restart Claude Code.
 - **Rate limit persistence** — Rate limit data is cached so it persists across context window resets (when `rate_limits` isn't in the JSON payload)
 - **PR detection** — Automatically detects open PRs for the current branch via `gh` and renders clickable terminal hyperlinks
 - **Worktree awareness** — Detects when you're inside a Claude Code worktree and shows the worktree name
+- **Restore awareness** — If a session registry exists at `~/.claude-sessions/active/` (override with `CLAUDE_SESSIONS_DIR`), shows whether the current session could be reopened after a crash, plus its short session ID. The column is omitted when no registry is present.
 - **Behind warning** — Shows a prominent pull indicator when your branch is behind the remote
 - **Color-coded thresholds** — Context and rate limit percentages shift from green to yellow to red as usage increases
 
