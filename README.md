@@ -38,7 +38,7 @@ Restart Claude Code.
 
 ## What it shows
 
-<img width="682" height="146" alt="image" src="https://github.com/user-attachments/assets/60148738-f8d1-4aab-a611-8ed8f1695c55" />
+<img alt="claude-meter statusline" src="assets/statusline.png" />
 
 
 ### Line 1 (left to right)
