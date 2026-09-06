@@ -74,7 +74,7 @@ QC=""; [[ "$CACHE_OK" == "1" ]] && QC="${_CD}/quota"
 
 # ── Parse stdin JSON ──
 HAS_RL=0
-IFS=$'\t' read -r MODEL DIR PCT CTX COST EFF HAS_RL U5 U7 R5 R7 DUR_MS SID < <(
+IFS=$'\t' read -r MODEL DIR PCT CTX COST EFF HAS_RL U5 U7 R5 R7 DUR_MS SID VER < <(
   jq -r --slurpfile cfg <(cat ~/.claude/settings.json 2>/dev/null || echo '{}') \
     '[(.model.display_name//"?"),(.workspace.project_dir//"."),
     (.context_window.used_percentage//0|floor),(.context_window.context_window_size//0),
@@ -86,7 +86,8 @@ IFS=$'\t' read -r MODEL DIR PCT CTX COST EFF HAS_RL U5 U7 R5 R7 DUR_MS SID < <(
     (.rate_limits.five_hour.resets_at//0),
     (.rate_limits.seven_day.resets_at//0),
     (.cost.total_duration_ms//0|floor),
-    (.session_id//"")]|@tsv' <<<"$input"
+    (.session_id//""),
+    (.version//"")]|@tsv' <<<"$input"
 )
 
 # ══════════════════════════════════════
@@ -150,6 +151,45 @@ else
   fi
 fi
 COL2_BOT="5h $(_color_pct "$U5")$(_fmt_countdown "$RM5")  7d $(_color_pct "$U7")$(_fmt_countdown "$RM7")"
+
+# Per-model weekly limits (e.g. Fable) — not in statusline stdin, so read from
+# the OAuth usage endpoint (undocumented; degrade silently on any failure).
+# Cached 60s; skipped entirely without a cache dir to avoid per-render fetches.
+_fetch_scoped() {
+  local tok="" resp
+  [ -f "$HOME/.claude/.credentials.json" ] &&
+    tok=$(jq -r '.claudeAiOauth.accessToken // empty' "$HOME/.claude/.credentials.json" 2>/dev/null)
+  [ -z "$tok" ] && command -v security >/dev/null 2>&1 &&
+    tok=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null |
+      jq -r '.claudeAiOauth.accessToken // empty')
+  [ -n "$tok" ] || return 1
+  resp=$(curl -sf --max-time 3 "https://api.anthropic.com/api/oauth/usage" \
+    -H "Authorization: Bearer $tok" -H "anthropic-beta: oauth-2025-04-20" \
+    -H "User-Agent: claude-code/${VER:-0}" 2>/dev/null) || return 1
+  jq -r '[.limits[]? | select(.kind=="weekly_scoped")
+    | (.scope.model.display_name // "?"), (.percent // 0 | floor | tostring)
+    ] | join("\u001f")' <<<"$resp" 2>/dev/null
+}
+if [[ "$CACHE_OK" == "1" ]] && command -v curl >/dev/null 2>&1; then
+  SC="${_CD}/scoped"
+  if _stale "$SC" 60; then
+    if _SL=$(_fetch_scoped); then
+      IFS="$SEP" read -r -a _SLF <<<"$_SL"
+      _write_cache "$SC" "${_SLF[@]}"
+    elif [ -f "$SC" ]; then touch "$SC"   # keep last known values on failure
+    else _write_cache "$SC" ""
+    fi
+  fi
+  if _load_cache "$SC"; then
+    _i=0
+    while ((_i + 1 < ${#CACHE_FIELDS[@]})); do
+      _SN=${CACHE_FIELDS[_i]}; _SP=${CACHE_FIELDS[_i + 1]}
+      [ -n "$_SN" ] && [[ "$_SP" =~ ^[0-9]+$ ]] &&
+        COL2_BOT+="  ${_SN:0:6} $(_color_pct "$_SP")"
+      _i=$((_i + 2))
+    done
+  fi
+fi
 
 # ══════════════════════════════════════
 # COL 3: USER PROFILE / CURRENT DIR (last 2 folders)
