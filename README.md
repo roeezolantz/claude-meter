@@ -56,7 +56,7 @@ Restart Claude Code.
 | Column | Description |
 |--------|-------------|
 | **Context** | Visual progress bar with percentage — green (<70%), yellow (70-89%), red (90%+) |
-| **Rate limits** | 5-hour and 7-day usage percentages with color coding and reset countdowns |
+| **Rate limits** | 5-hour and 7-day usage percentages with color coding and reset countdowns, plus per-model weekly limits (e.g. `Fable 17%`) when your plan has them — fetched from the account usage API via your local Claude Code OAuth token, cached 60s |
 | **Directory** | Last two path components of the project directory |
 | **Changes** | File count, additions, and deletions — or "clean" if no uncommitted changes. Shows worktree name when inside a `.claude/worktrees/` directory |
 | **Session ID** | First 8 characters of the session ID — enough to pick the session out of `claude-restore --list` or `claude --resume` |
