@@ -75,11 +75,11 @@ QC=""; [[ "$CACHE_OK" == "1" ]] && QC="${_CD}/quota"
 # ── Parse stdin JSON ──
 HAS_RL=0
 IFS=$'\t' read -r MODEL DIR PCT CTX COST EFF HAS_RL U5 U7 R5 R7 DUR_MS SID VER < <(
-  jq -r --slurpfile cfg <(cat ~/.claude/settings.json 2>/dev/null || echo '{}') \
+  jq -r \
     '[(.model.display_name//"?"),(.workspace.project_dir//"."),
     (.context_window.used_percentage//0|floor),(.context_window.context_window_size//0),
     (.cost.total_cost_usd//0),
-    ($cfg[0].effortLevel//"default"),
+    (.effort.level//"default"),
     (if .rate_limits then 1 else 0 end),
     (.rate_limits.five_hour.used_percentage//null|if type=="number" then floor else "--" end),
     (.rate_limits.seven_day.used_percentage//null|if type=="number" then floor else "--" end),
