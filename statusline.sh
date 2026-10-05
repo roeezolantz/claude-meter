@@ -98,7 +98,9 @@ case "${EFF:-default}" in
   high)  EF='◎' EL='high';;
   xhigh) EF='◉' EL='xhigh';;
   max)   EF='●' EL='max';;
-  *)     EF='○' EL='';;
+  medium) EF='○' EL='medium';;
+  default) EF='○' EL='';;
+  *)     EF='○' EL="$EFF";;
 esac
 if ((CTX >= 1000000)); then CL="$((CTX / 1000000))M"
 elif ((CTX > 0)); then CL="$((CTX / 1000))K"
